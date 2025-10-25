@@ -267,17 +267,15 @@
             ctx.beginPath();
             ctx.moveTo(objectX, lensY - objectHeight/2);
             ctx.lineTo(lensX, lensY - objectHeight/2);
-            ctx.stroke();
             
             // 光线1经过透镜后的路径
             if (objectDistance > focalLength) {
                 // 实像情况：光线过焦点
-                ctx.beginPath();
-                ctx.moveTo(lensX, lensY - objectHeight/2);
                 ctx.lineTo(lensX + focusDistance, lensY);
                 ctx.stroke();
             } else {
                 // 虚像情况：反向延长线过焦点
+                ctx.stroke();
                 ctx.setLineDash([5, 5]);
                 ctx.beginPath();
                 ctx.moveTo(lensX, lensY - objectHeight/2);
@@ -286,36 +284,32 @@
                 ctx.setLineDash([]);
             }
             
-            // 绘制光线2：过光心
+            // 绘制光线2：过光心（方向不变）
             ctx.strokeStyle = '#2ecc71';
             ctx.lineWidth = 2;
             ctx.beginPath();
             ctx.moveTo(objectX, lensY - objectHeight/2);
-            ctx.lineTo(lensX, lensY);
             
             if (objectDistance > focalLength) {
-                // 实像情况：直线传播
-                ctx.lineTo(
-                    lensX + (imageX - lensX) * (lensY - objectHeight/2) / (lensY - (lensY - objectHeight/2)),
-                    lensY + imageHeight/2
-                );
+                // 实像情况：直线传播到像的底端
+                ctx.lineTo(lensX, lensY);
+                ctx.lineTo(imageX, lensY + imageHeight/2);
             } else {
-                // 虚像情况：反向延长线
-                ctx.setLineDash([5, 5]);
-                ctx.lineTo(
-                    lensX - (lensX - imageX) * (lensY - objectHeight/2) / (lensY - (lensY - objectHeight/2)),
-                    lensY + imageHeight/2
-                );
-                ctx.stroke();
-                ctx.setLineDash([]);
+                // 虚像情况：直线传播到画布边缘
+                ctx.lineTo(lensX, lensY);
+                // 计算光线方向
+                const slope = (lensY - (lensY - objectHeight/2)) / (lensX - objectX);
+                const endX = canvas.width;
+                const endY = lensY + slope * (endX - lensX);
+                ctx.lineTo(endX, endY);
                 
-                // 实际传播方向（直线）
+                // 绘制反向延长线（虚线）
+                ctx.setLineDash([5, 5]);
                 ctx.beginPath();
                 ctx.moveTo(lensX, lensY);
-                ctx.lineTo(
-                    lensX + (imageX - lensX) * (lensY - objectHeight/2) / (lensY - (lensY - objectHeight/2)),
-                    lensY + imageHeight/2
-                );
+                ctx.lineTo(imageX, lensY - imageHeight/2);
+                ctx.stroke();
+                ctx.setLineDash([]);
             }
             ctx.stroke();
             
